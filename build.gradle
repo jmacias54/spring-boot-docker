@@ -1,0 +1,45 @@
+group 'com.jorgehernandezramirez.spring.springboot'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE")
+        classpath('se.transmode.gradle:gradle-docker:1.2')
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'maven'
+apply plugin: 'docker'
+
+sourceCompatibility = 1.8
+
+springBoot {
+    mainClass = "com.jorgehernandezramirez.spring.springboot.docker.Application"
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web")
+}
+
+task buildDocker(type: Docker, dependsOn: build) {
+    push = project.hasProperty('push')
+    applicationName = jar.baseName
+    tag = 'jorgehernandezramirez/spring-boot-docker'
+    dockerfile = file('src/main/docker/Dockerfile')
+    doFirst {
+        copy {
+            from jar
+            into stageDir
+        }
+    }
+}
